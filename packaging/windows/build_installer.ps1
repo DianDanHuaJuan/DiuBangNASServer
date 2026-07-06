@@ -69,7 +69,7 @@ function Test-ReleaseBundle {
         'data\app.so',
         'data\icudtl.dat',
         'data\flutter_assets\AssetManifest.bin',
-        'data\flutter_assets\assets\Encryption_key'
+        'data\flutter_assets\Encryption_key'
     )
 
     $missing = @()
@@ -121,6 +121,22 @@ if (-not (Test-Path -LiteralPath $ffmpegSource)) {
 或从 https://github.com/BtbN/FFmpeg-Builds/releases 下载 ffmpeg-n8.1.2-win64-lgpl-8.1.zip（lgpl 变体，非 gpl），
 解压后将 bin\ffmpeg.exe 复制到 assets\ffmpeg.exe。
 视频预览、HLS 与缩略图依赖此文件。
+"@
+}
+
+$encryptionKey = Join-Path $repoRoot 'Encryption_key'
+if (-not (Test-Path -LiteralPath $encryptionKey)) {
+    throw @"
+缺少项目根目录 Encryption_key，无法构建安装包。
+请先在仓库根目录创建（须与客户端使用同一份密钥）：
+
+  # 方式一：自行生成随机密钥（推荐生产环境）
+  -join ((1..16 | ForEach-Object { '{0:x2}' -f (Get-Random -Max 256) })) | Set-Content -NoNewline Encryption_key
+
+  # 方式二：复制公开兼容示例（仅限本地联调）
+  Copy-Item Encryption_key.example Encryption_key
+
+详见 README.md「配置加密密钥」章节。
 "@
 }
 
