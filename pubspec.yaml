@@ -1,0 +1,75 @@
+name: nas_server
+description: "铥棒文件S - Windows NAS 服务端"
+license: MIT
+repository: https://github.com/DianDanHuaJuan/DiuBangNASServer
+homepage: https://github.com/DianDanHuaJuan/DiuBangNASServer
+issue_tracker: https://github.com/DianDanHuaJuan/DiuBangNASServer/issues
+publish_to: 'none'
+version: 1.0.1+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
+  flutter_bloc: ^8.1.3
+  network_info_plus: ^6.0.0
+  permission_handler: ^11.3.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  flutter_foreground_task: ^9.2.2
+  cryptography: ^2.0.0
+  qr_flutter: ^4.0.0
+  shelf_web_socket: ^3.0.0
+  web_socket_channel: ^3.0.3
+  sqflite: ^2.4.2
+  sqflite_common_ffi: 2.3.7
+  basic_utils: ^5.8.2
+  pointycastle: ^4.0.0
+  file_selector: ^1.1.0
+  bonsoir: ^6.0.3
+  window_manager: ^0.5.1
+  system_tray: ^2.0.3
+  launch_at_startup: ^0.5.1
+  win32: ^5.15.0
+  ffi: ^2.2.0
+  sqlite3: 2.9.4
+  image: ^4.5.4
+  media_kit: ^1.2.6
+  media_kit_video: ^2.0.1
+  media_kit_libs_windows_video: ^1.0.11
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - Encryption_key
+    - windows/runner/resources/app_icon.ico
+  fonts:
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansCJKsc-Regular.otf
+          weight: 400
+        - asset: assets/fonts/NotoSansCJKsc-Bold.otf
+          weight: 700
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#3D8959"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    icon_size: 256

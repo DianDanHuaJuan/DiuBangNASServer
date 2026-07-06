@@ -1,0 +1,108 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+*.exe
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Encryption key file generated locally
+/Encryption_key
+/assets/Encryption_key
+
+**/node_modules/
+
+# Dev tooling and internal docs (not needed to build/run)
+/LOGO/
+/qingmao/
+/docs/
+/LARGE_SHARE_INDEXING_SPEC.md
+/ffmpeg configure.txt
+
+# Build artifacts (nested windows/ mistakenly tracked)
+windows/build/
+windows/.dart_tool/
+windows/android/
+windows/ios/
+windows/macos/
+windows/linux/
+windows/web/
+windows/windows/
+windows/lib/
+windows/test/
+windows/pubspec.yaml
+windows/pubspec.lock
+windows/.metadata
+windows/analysis_options.yaml
+windows/README.md
+
+# Design scratch (local only)
+stitch_windows_server_monitor-*/
+stitch_*.zip
+figma_*.pdf
+*.pen
+/render.js
+/plan.md
+/PRODUCTION_READINESS_AUDIT.md
+/WINDOWS_DESKTOP_AUDIT.md
+/fuwu.png
+/dsBuffer.bmp.png
+/logo_option*.svg
+
+# Large binaries not tracked in Git
+/assets/ffmpeg.exe
+/assets/vc_runtime/
+/assets/vc_redist.x64.exe
+
+#installer package
+/installer
+/packaging/windows/output/
+
+# Local debug logs (may contain request URLs or paths)
+/server_debug.log
+
+# Debug symbol files
+*.pdb
+*.ilk
+
+# Binary libraries (prevent accidental tracking)
+*.dll
