@@ -10,6 +10,7 @@
 #endif
 
 #define MyAppName "铥棒文件S"
+#define MyAppDirName "DiuBangWenJianS"
 #define MyAppPublisher "铥棒文件S"
 #define MyAppExeName "diubang_file_s.exe"
 #define MyAppId "{{A3F8C2E1-9B4D-4A6F-8E2C-1D5B7F9A0C3E}"
@@ -21,7 +22,7 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersionFull}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppDirName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=output
