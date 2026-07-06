@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-07-06
+
+### Changed
+
+- Replaced gyan.dev GPLv3 FFmpeg essentials with BtbN win64-lgpl static build
+- HLS encoding now uses h264_mf / libopenh264 via FfmpegHlsEncoder (no libx264)
+- Added unified Windows bootstrap tooling (tool/bootstrap_windows.ps1)
+- build_installer.ps1 auto-bootstraps media_kit + FFmpeg and bundles THIRD_PARTY_NOTICES.txt
+- Updated README, SECURITY, CONTRIBUTING, and packaging docs for LGPL compliance
+- LICENSE copyright holder updated to DianDanHuaJuan
+
 ## [1.0.1] - 2026-07-06
 
 ### Changed

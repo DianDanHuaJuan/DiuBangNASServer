@@ -1,0 +1,55 @@
+Third-Party Notices for DiuBangFileS (NASServer)
+===============================================
+
+This application is licensed under the MIT License (see LICENSE).
+The distributed Windows installer may bundle separately licensed components listed below.
+
+FFmpeg (LGPL v2.1+)
+-------------------
+- Component: ffmpeg.exe (bundled subprocess for HLS transcoding and video thumbnails)
+- Source: BtbN/FFmpeg-Builds win64-lgpl static build (8.1 release branch)
+  https://github.com/BtbN/FFmpeg-Builds
+- License: GNU Lesser General Public License v2.1 or later
+  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+- FFmpeg project: https://ffmpeg.org/
+- Usage: Invoked as a separate process; not linked into the application binary.
+- H.264 encoding: h264_mf (Windows Media Foundation) or libopenh264 (Cisco OpenH264, BSD).
+
+libmpv (LGPL v2.1+)
+-------------------
+- Component: libmpv-2.dll (in-process video playback via media_kit)
+- Source: media-kit/libmpv-win32-video-build (built with -Dgpl=false)
+  https://github.com/media-kit/libmpv-win32-video-build
+- License: GNU Lesser General Public License v2.1 or later
+
+ANGLE / OpenGL ES (BSD-style)
+-----------------------------
+- Components: libEGL.dll, libGLESv2.dll, and related ANGLE dependencies
+- License: BSD-style (see ANGLE project notices)
+
+Flutter Engine (BSD 3-Clause)
+-----------------------------
+- Component: flutter_windows.dll
+- License: BSD 3-Clause License
+  https://github.com/flutter/flutter/blob/master/LICENSE
+
+Microsoft Visual C++ Runtime
+----------------------------
+- Components: vcruntime140.dll, vcruntime140_1.dll, msvcp140.dll
+- License: Microsoft Visual C++ Redistributable terms
+
+Noto Sans CJK SC (SIL Open Font License 1.1)
+----------------------------------------------
+- Components: UI font files bundled in flutter_assets
+- License: SIL Open Font License 1.1 (see assets/fonts/OFL.txt)
+
+Other Dart / Flutter plugins
+----------------------------
+Most remaining dependencies are MIT, BSD, or Apache-2.0 licensed.
+See pubspec.yaml and pubspec.lock for package names and upstream repositories.
+
+Source code offers
+------------------
+For LGPL components (FFmpeg, libmpv), source code is available from the upstream
+project URLs above. Written offers may be directed to the repository maintainer
+listed on https://github.com/DianDanHuaJuan/DiuBangNASServer

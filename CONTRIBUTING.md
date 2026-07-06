@@ -17,9 +17,23 @@ Thank you for your interest in contributing to **DiuBangFileS** (NASServer).
 
    For a local override you may place `Encryption_key` at the repository root (gitignored); the loader prefers that file at runtime.
 
-5. Run the app: `flutter run -d windows`
-6. Run tests: `flutter test`
-7. Run the analyzer: `flutter analyze`
+5. Bootstrap Windows build dependencies (required before build / installer):
+
+   ```powershell
+   .\tool\bootstrap_windows.ps1
+   ```
+
+   Prepares media_kit native libraries (libmpv + ANGLE, MD5 verified) and FFmpeg LGPL build (`assets/ffmpeg.exe` from BtbN win64-lgpl). Downloads retry up to 3 times; corrupt files are deleted and re-fetched. On failure, the script prints an explicit list of which dependency failed.
+
+   Fix individually: `-Only media_kit` or `-Only ffmpeg`; force re-download: `-Force`.
+
+   Legacy wrappers `bootstrap_media_kit_windows.ps1` / `bootstrap_ffmpeg_windows.ps1` still work.
+
+   If you see `Integrity check failed`, see [Windows 构建故障排除](README.md#windows-构建故障排除) in README.md.
+
+6. Run the app: `flutter run -d windows`
+7. Run tests: `flutter test`
+8. Run the analyzer: `flutter analyze`
 
 ## Pull requests
 

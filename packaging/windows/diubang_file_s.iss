@@ -2,11 +2,11 @@
 ; 编译前请先执行 flutter build windows --release，或使用 build_installer.ps1
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.0"
+  #define MyAppVersion "1.0.2"
 #endif
 
 #ifndef MyAppVersionFull
-  #define MyAppVersionFull "1.0.0+1"
+  #define MyAppVersionFull "1.0.2+2"
 #endif
 
 #define MyAppName "铥棒文件S"

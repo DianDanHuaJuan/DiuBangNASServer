@@ -20,6 +20,7 @@ class FfmpegLocator {
       p.join(executableDir, 'ffmpeg.exe'),
       p.join(executableDir, 'tools', 'ffmpeg.exe'),
       p.join(executableDir, 'data', 'flutter_assets', 'assets', 'ffmpeg.exe'),
+      p.join(Directory.current.path, 'assets', 'ffmpeg.exe'),
     ];
 
     for (final candidate in candidates) {

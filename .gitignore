@@ -92,6 +92,7 @@ figma_*.pdf
 /assets/ffmpeg.exe
 /assets/vc_runtime/
 /assets/vc_redist.x64.exe
+/tool/.cache/
 
 #installer package
 /installer

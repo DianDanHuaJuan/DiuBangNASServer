@@ -2,7 +2,7 @@
 
 面向 **Windows 桌面** 的 NAS 服务端（Flutter）：围绕用户选定的单个共享目录提供 WebDAV、控制面 API、Relay，以及共享目录内图片/视频的预览与缩略图能力。
 
-**许可证：** [MIT](LICENSE) · **版本：** 1.0.0
+**许可证：** [MIT](LICENSE) · **版本：** 1.0.2
 
 **配套客户端：** [DiuBangNASClient](https://github.com/DianDanHuaJuan/DiuBangNASClient)
 
@@ -18,10 +18,8 @@
 ## 环境要求
 
 - Flutter SDK，兼容 **Dart ^3.10.7**（见 `pubspec.yaml`）
-- **Windows 10 / 11，x64**（本仓库当前主要支持 Windows 桌面）
-- 配套 [DiuBangNASClient](https://github.com/DianDanHuaJuan/DiuBangNASClient)（Android 客户端）
-
-> `android/` 目录为历史遗留平台代码，开源版本以 Windows 桌面为主；Android 构建未作为当前维护目标。
+- **Windows 10 / 11，x64**（本仓库当前主要支持 Windows 桌面，安卓平台待开发）
+- 配套 [DiuBangNASClient](https://github.com/DianDanHuaJuan/DiuBangNASClient)
 
 ## 快速开始
 
@@ -45,60 +43,71 @@
    生成随机密钥（推荐）：
 
    ```powershell
-   openssl rand -hex 16 | Out-File -Encoding ascii -NoNewline Encryption_key
+   openssl rand -hex 16 > Encryption_key
    ```
 
    或者复制公开兼容示例密钥（仅限本地测试，须与客户端 example 密钥一致）：
 
    ```powershell
-   Copy-Item Encryption_key.example Encryption_key
+   cp Encryption_key.example Encryption_key
    ```
 
-4. 运行（Windows 桌面）：
+4. **预下载 Windows 构建依赖（必做）：**
+
+   克隆后需一次性准备未纳入 Git 的外部依赖（media_kit 原生库、FFmpeg LGPL 构建）。统一入口：
+
+   ```powershell
+   .\tool\bootstrap_windows.ps1
+   ```
+
+   - **media_kit**：libmpv + ANGLE，带 MD5 校验；网络不稳定时避免 `Integrity check failed`
+   - **FFmpeg**：[BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) **win64-lgpl** 静态构建（8.1 分支），仅提取 `assets\ffmpeg.exe`；
+
+   单独修复某一依赖：
+
+   ```powershell
+   .\tool\bootstrap_windows.ps1 -Only media_kit
+   .\tool\bootstrap_windows.ps1 -Only ffmpeg -Force
+   ```
+
+5. 运行（Windows 桌面）：
 
    ```powershell
    flutter run -d windows
    ```
 
-5. 开发检查：
+   若未运行 bootstrap 且系统 PATH 无 `ffmpeg.exe`，视频缩略图与 HLS 转码不可用。
+
+6. 开发检查：
 
    ```powershell
    flutter analyze
    flutter test
    ```
 
-## Windows 构建
-
-```powershell
-flutter build windows --release `
-  --dart-define=NAS_APP_VERSION=1.0.0+1 `
-  --dart-define=NAS_BUILD_SHA=<git-sha> `
-  --dart-define=NAS_BUILD_TIME=<utc-iso8601>
-```
-
-构建产物位于 `build\windows\x64\runner\Release\`（便携目录，约 200MB+）。
-
 ## Windows 安装包（Inno Setup）
 
-详细步骤见 [`packaging\windows\README.md`](packaging/windows/README.md)。
-
 ```powershell
-# 构建前确保 assets\ffmpeg.exe 已就位（见 packaging\windows\README.md）
 .\packaging\windows\build_installer.ps1
 ```
 
+脚本会自动调用 `.\tool\bootstrap_windows.ps1`，无需手动放置依赖。
+
 安装包输出：`packaging\windows\output\DiuBangFileS-Setup-<version>.exe`
 
-### 部署须知
+详见 [packaging/windows/README.md](packaging/windows/README.md)。
 
-| 项目 | 说明 |
+## Windows 构建故障排除
+
+| 现象 | 处理 |
 |------|------|
-| 操作系统 | **Windows 10 / 11，x64** |
-| 默认管理员 | 首次启动为 `admin` / `admin`，**必须在本地 UI 修改后**才允许远程客户端配对 |
-| Encryption_key | 须与客户端使用相同密钥；自托管请自行生成，勿在生产环境使用 example 密钥 |
-| 运行库 | 安装包可附带 VC++ 运行库；需 Windows 10/11 系统 UCRT |
-| 网络 | 局域网互通；防火墙放行应用与 HTTP/HTTPS 端口 |
-| 窗口行为 | 关闭窗口缩到托盘而非退出 |
+| Bootstrap 失败 | 查看脚本末尾「Bootstrap FAILED」清单，按依赖名修复；重试 `.\tool\bootstrap_windows.ps1 [-Force]` |
+| `Integrity check failed`（media_kit） | `.\tool\bootstrap_windows.ps1 -Only media_kit -Force`；必要时 `flutter clean` 后删除 `build\windows\x64\` 下 `*.7z`、`libmpv\`、`ANGLE\` |
+| FFmpeg 下载失败 | `.\tool\bootstrap_windows.ps1 -Only ffmpeg -Force`；或从 [BtbN Releases](https://github.com/BtbN/FFmpeg-Builds/releases) 下载 `ffmpeg-n8.1.2-win64-lgpl-8.1.zip`（**lgpl**，非 gpl） |
+| 缺少 `assets\ffmpeg.exe` | `.\tool\bootstrap_windows.ps1 -Only ffmpeg` |
+
+更多细节见 [packaging/windows/README.md](packaging/windows/README.md)。
+
 
 ## 贡献
 
@@ -110,8 +119,11 @@ flutter build windows --release `
 
 ## 第三方组件
 
+本仓库源码为 [MIT](LICENSE)。安装包另含以下组件（详见 [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)）：
+
 - [Noto Sans CJK SC](assets/fonts/OFL.txt) — UI 字体（SIL Open Font License 1.1）
-- [FFmpeg](https://ffmpeg.org/) — 可选，用于 Windows 安装包中的 HLS/转码（需自行放置 `assets\ffmpeg.exe`，许可取决于你的构建配置）
+- [FFmpeg](https://ffmpeg.org/)（[BtbN win64-lgpl](https://github.com/BtbN/FFmpeg-Builds)）— HLS/缩略图**子进程**（`assets\ffmpeg.exe`，LGPL v2.1+；H.264 编码使用 `h264_mf` / `libopenh264`，非 GPL）
+- [libmpv](https://github.com/media-kit/libmpv-win32-video-build) — 本地视频预览（`libmpv-2.dll`，LGPL v2.1+，`-Dgpl=false` 构建）
 
 ## 安全
 

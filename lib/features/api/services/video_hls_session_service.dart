@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../../../core/storage/ffmpeg_hls_encoder.dart';
 import '../../../core/storage/ffmpeg_locator.dart';
 
 class VideoHlsSession {
@@ -128,6 +129,7 @@ class VideoHlsSessionService {
     await session.outputDir.create(recursive: true);
 
     final playlistFile = File(session.playlistPath);
+    final videoEncoder = await FfmpegHlsEncoder.resolve(ffmpegPath);
     final process = await Process.start(ffmpegPath, <String>[
       '-y',
       '-hide_banner',
@@ -139,20 +141,7 @@ class VideoHlsSessionService {
       '0:v:0',
       '-map',
       '0:a:0?',
-      '-c:v',
-      'libx264',
-      '-preset',
-      'veryfast',
-      '-pix_fmt',
-      'yuv420p',
-      '-profile:v',
-      'main',
-      '-level',
-      '4.1',
-      '-g',
-      '48',
-      '-sc_threshold',
-      '0',
+      ...FfmpegHlsEncoder.videoEncoderArgs(videoEncoder),
       '-c:a',
       'aac',
       '-b:a',

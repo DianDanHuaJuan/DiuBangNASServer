@@ -48,6 +48,17 @@ Network debug logging may include request URLs and response bodies in debug buil
 
 The `android/` tree is retained for historical compatibility but is **not** the primary supported platform for this open-source release. Release builds may fall back to debug signing when local keystore configuration is absent. Do not distribute unsigned or debug-signed Android builds.
 
-### FFmpeg (optional installer bundle)
+### libmpv (installer bundle)
 
-Windows installer packaging may bundle `ffmpeg.exe` placed locally under `assets/` (not committed). FFmpeg licensing depends on your build configuration; see `ffmpeg configure.txt` and comply with GPL/LGPL obligations if you redistribute FFmpeg binaries.
+Windows builds bundle `libmpv-2.dll` via [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build) (built with `-Dgpl=false`).
+
+- Used in-process for local video preview through media_kit; not used for server-side HLS transcoding.
+- Redistribution requires LGPL compliance. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+
+### FFmpeg (installer bundle)
+
+Windows installer packaging bundles `ffmpeg.exe` from [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) (`win64-lgpl` static build, 8.1 release branch). The file is placed under `assets/` during bootstrap (not committed to Git).
+
+- FFmpeg is invoked as a **separate subprocess** for HLS transcoding and video thumbnails; it is not linked into the MIT-licensed application source.
+- The bundled build excludes GPL-only components (e.g. libx264). H.264 encoding uses `h264_mf` or `libopenh264`.
+- Redistribution requires LGPL compliance (notices, source offer). See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).

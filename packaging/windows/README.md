@@ -6,16 +6,34 @@
 - Flutter 3.38+、`flutter doctor -v` 无 Windows/VS 红叉
 - Visual Studio 2022（「使用 C++ 的桌面开发」）
 - [Inno Setup 6](https://jrsoftware.org/isinfo.php)（生成 `.exe` 安装包时需要）
+- 能稳定访问 **github.com**（bootstrap 下载 media_kit / FFmpeg）
+- 建议安装 [7-Zip](https://www.7-zip.org/)（CMake 解压 `.7z` 时使用）
 
-## ffmpeg.exe（构建前必放）
+## Windows 构建依赖（统一 bootstrap）
 
-`assets\ffmpeg.exe` 体积约 100MB，已在 `.gitignore` 中忽略，**克隆仓库后需自行准备**：
+克隆后未纳入 Git 的外部依赖由统一脚本准备：
 
-1. 从 [gyan.dev FFmpeg builds](https://www.gyan.dev/ffmpeg/builds/) 下载 `ffmpeg-release-essentials.zip`
-2. 解压后将 `bin\ffmpeg.exe` 复制到仓库根目录 `assets\ffmpeg.exe`
-3. `build_installer.ps1` 会在构建前检查该文件；Release 目录也会校验 `ffmpeg.exe` 是否已打入
+```powershell
+.\tool\bootstrap_windows.ps1
+```
 
-视频预览、HLS 转码与视频缩略图依赖此文件。缺失时应用仍可启动，但相关能力降级。
+| 依赖 | 说明 |
+|------|------|
+| **media_kit** | libmpv + ANGLE → `build/windows/x64/`，固定 MD5；避免 `Integrity check failed` |
+| **FFmpeg LGPL** | [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) `win64-lgpl` 静态构建 → `assets/ffmpeg.exe`（HLS 编码：`h264_mf` / `libopenh264`） |
+
+安装包构建时会将根目录 [`THIRD_PARTY_NOTICES.txt`](../../THIRD_PARTY_NOTICES.txt) 复制到 Release 目录，供 LGPL 等第三方许可声明。
+
+特性：有限次重试（默认 3）、下载中断或 MD5/校验失败自动删文件重下、全部重试用尽后输出**具体失败依赖清单**。
+
+单独修复：
+
+```powershell
+.\tool\bootstrap_windows.ps1 -Only media_kit -Force
+.\tool\bootstrap_windows.ps1 -Only ffmpeg -Force
+```
+
+`build_installer.ps1` 构建前会自动调用上述脚本。
 
 ## MSVC 运行库（自动提取，约 700 KB）
 
@@ -42,7 +60,7 @@
 
 脚本流程：
 
-1. 校验 `assets\ffmpeg.exe`
+1. 引导 Windows 构建依赖（`tool\bootstrap_windows.ps1`：media_kit + FFmpeg）
 2. `flutter build windows --release`（自动注入 `NAS_APP_VERSION` / `NAS_BUILD_SHA` / `NAS_BUILD_TIME`）
 3. 部署 MSVC 运行库 DLL 到 Release
 4. 校验 `build\windows\x64\runner\Release\` 完整性
@@ -69,14 +87,15 @@
 ## 手动分步（等价于脚本）
 
 ```powershell
+.\tool\bootstrap_windows.ps1
 flutter build windows --release `
-  --dart-define=NAS_APP_VERSION=1.0.0+1 `
+  --dart-define=NAS_APP_VERSION=1.0.2+2 `
   --dart-define=NAS_BUILD_SHA=<git-sha> `
   --dart-define=NAS_BUILD_TIME=<utc-iso8601>
 
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
-  /DMyAppVersion=1.0.0 `
-  /DMyAppVersionFull=1.0.0+1 `
+  /DMyAppVersion=1.0.2 `
+  /DMyAppVersionFull=1.0.2+2 `
   packaging\windows\diubang_file_s.iss
 ```
 

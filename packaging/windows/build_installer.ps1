@@ -4,7 +4,7 @@
   构建铥棒文件S Windows Release 并编译 Inno Setup 安装包。
 
 .DESCRIPTION
-  1. 校验 assets\ffmpeg.exe 存在
+  1. 引导 Windows 构建依赖（media_kit + FFmpeg，tool\bootstrap_windows.ps1）
   2. flutter build windows --release（注入版本与构建信息）
   3. 部署 MSVC 运行库 DLL 到 Release 目录
   4. 校验 Release 目录完整性
@@ -102,11 +102,24 @@ $version = $versionFull.Split('+')[0]
 $buildNumber = if ($versionFull.Contains('+')) { $versionFull.Split('+')[1] } else { '1' }
 
 $ffmpegSource = Join-Path $repoRoot 'assets\ffmpeg.exe'
+
+Write-Host 'Bootstrapping Windows build dependencies (media_kit + FFmpeg) ...'
+& (Join-Path $repoRoot 'tool\bootstrap_windows.ps1') -RepoRoot $repoRoot
+if ($LASTEXITCODE -ne 0) {
+    throw @"
+Windows 构建依赖引导失败。请查看上方「Bootstrap FAILED」清单，修复后重试：
+  .\tool\bootstrap_windows.ps1 [-Force]
+  .\tool\bootstrap_windows.ps1 -Only media_kit   # 仅 media_kit
+  .\tool\bootstrap_windows.ps1 -Only ffmpeg      # 仅 FFmpeg
+"@
+}
+
 if (-not (Test-Path -LiteralPath $ffmpegSource)) {
     throw @"
-缺少 assets\ffmpeg.exe。该文件体积较大且未纳入 Git，构建安装包前请手动放置：
-  1. 从 https://www.gyan.dev/ffmpeg/builds/ 下载 ffmpeg-release-essentials.zip
-  2. 解压后将 bin\ffmpeg.exe 复制到 assets\ffmpeg.exe
+缺少 assets\ffmpeg.exe。自动引导失败，请手动运行：
+  .\tool\bootstrap_windows.ps1
+或从 https://github.com/BtbN/FFmpeg-Builds/releases 下载 ffmpeg-n8.1.2-win64-lgpl-8.1.zip（lgpl 变体，非 gpl），
+解压后将 bin\ffmpeg.exe 复制到 assets\ffmpeg.exe。
 视频预览、HLS 与缩略图依赖此文件。
 "@
 }
@@ -137,6 +150,12 @@ if (-not (Test-Path -LiteralPath $releaseDir)) {
 
 Write-Host '部署 MSVC 运行库 DLL ...'
 & (Join-Path $PSScriptRoot 'collect_vc_runtime.ps1') -ReleaseDir $releaseDir -RepoRoot $repoRoot
+
+$noticesSource = Join-Path $repoRoot 'THIRD_PARTY_NOTICES.txt'
+if (Test-Path -LiteralPath $noticesSource) {
+    Copy-Item -LiteralPath $noticesSource -Destination (Join-Path $releaseDir 'THIRD_PARTY_NOTICES.txt') -Force
+    Write-Host '已复制 THIRD_PARTY_NOTICES.txt 到 Release 目录。'
+}
 
 Test-ReleaseBundle -ReleaseDir $releaseDir
 
