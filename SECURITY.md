@@ -18,7 +18,9 @@ Review these before deploying in production or on untrusted networks.
 
 ### Default owner credentials
 
-On first launch the server seeds a default owner account **`admin` / `admin`**. Remote clients cannot establish sessions until the owner changes these credentials in the local management UI. Treat any deployment that still uses the default password as compromised.
+On first launch the server seeds a default owner account **`admin` / `admin`**. Remote clients cannot establish **owner** sessions via `POST /api/v1/auth/session` until the owner changes these credentials in the local management UI.
+
+Credential-based **device enrollment** (`POST /api/v1/auth/credential-device-enroll`) intentionally allows the default credentials so headless clients can register as devices on a trusted LAN. This issues a device token (`role: device`), not an owner session. Treat any deployment that still uses the default password as compromised if exposed beyond a trusted network.
 
 ### Static `Encryption_key`
 

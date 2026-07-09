@@ -61,6 +61,7 @@ import '../../features/settings/presentation/cubit/settings_cubit.dart';
 import '../../features/api/handlers/api_router.dart';
 import '../../features/api/handlers/auth_router.dart';
 import '../../features/api/handlers/auth_session_handler.dart';
+import '../../features/api/handlers/credential_device_enroll_handler.dart';
 import '../../features/api/handlers/batch_delete_handler.dart';
 import '../../features/api/handlers/backup_preflight_handler.dart';
 import '../../features/api/handlers/batch_thumbnail_handler.dart';
@@ -858,6 +859,16 @@ class ServiceLocator {
       final deviceRefreshHandler = DeviceRefreshHandler(
         deviceStore: deviceStore,
       );
+      final credentialDeviceEnrollHandler = CredentialDeviceEnrollHandler(
+        ownerCredentialStore: ownerCredentialStore,
+        deviceStore: deviceStore,
+        tlsMaterialProvider: () => serverTlsManager.ensureMaterial(
+          serverId: serverId,
+          serverName: serverName,
+          localIp: localIp,
+          port: port,
+        ),
+      );
       final deviceApiHandler = DeviceApiHandler(
         deviceStore: deviceStore,
         avatarStore: deviceAvatarStore,
@@ -869,6 +880,7 @@ class ServiceLocator {
       final authRouter = AuthRouter(
         authSessionHandler: authSessionHandler,
         deviceRefreshHandler: deviceRefreshHandler,
+        credentialDeviceEnrollHandler: credentialDeviceEnrollHandler,
       );
       final realtimeWsHandler = RealtimeWsHandler(
         authSessionStore: authSessionStore!,
