@@ -54,7 +54,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - Encryption_key
     - windows/runner/resources/app_icon.ico
   fonts:
     - family: NotoSansSC

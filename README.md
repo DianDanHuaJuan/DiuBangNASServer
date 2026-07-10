@@ -36,29 +36,7 @@
    flutter pub get
    ```
 
-3. **配置加密密钥：**
-
-   该加密密钥用于服务端和客户端之间加密通讯，请确保客户端和服务端构建时使用同一个密钥，否则二者将无法通讯。仓库仅提供 `Encryption_key.example` 作为格式参考，不建议直接用于部署。构建前必须在项目根目录创建 `Encryption_key`。
-
-   生成随机密钥（PowerShell 原生）：
-
-   ```powershell
-   -join ((1..16 | ForEach-Object { '{0:x2}' -f (Get-Random -Max 256) })) | Set-Content -NoNewline Encryption_key
-   ```
-
-   或使用 OpenSSL：
-
-   ```powershell
-   openssl rand -hex 16 | Set-Content -NoNewline Encryption_key
-   ```
-
-   或者复制公开兼容示例密钥（仅限本地测试）：
-
-   ```powershell
-   Copy-Item Encryption_key.example Encryption_key
-   ```
-
-4. **预下载 Windows 构建依赖（必做）：**
+3. **预下载 Windows 构建依赖（必做）：**
 
    克隆后需一次性准备未纳入 Git 的外部依赖（media_kit 原生库、FFmpeg LGPL 构建）：
 
@@ -76,7 +54,7 @@
    .\tool\bootstrap_windows.ps1 -Only ffmpeg -Force
    ```
 
-5. 运行（Windows 桌面）：
+4. 运行（Windows 桌面）：
 
    ```powershell
    flutter run -d windows
@@ -84,7 +62,7 @@
 
    若未运行 bootstrap 且系统 PATH 无 `ffmpeg.exe`，视频缩略图与 HLS 转码不可用。
 
-6. 开发检查：
+5. 开发检查：
 
    ```powershell
    flutter analyze
@@ -93,7 +71,7 @@
 
 ## Windows 安装包（Inno Setup）
 
-打安装包前须已完成根目录 `Encryption_key` 配置（见上文第 3 步）。
+打安装包前须已完成 `.\tool\bootstrap_windows.ps1`（见上文第 3 步）。
 
 ```powershell
 .\packaging\windows\build_installer.ps1
@@ -135,4 +113,4 @@
 
 ## 安全
 
-详见 [SECURITY.md](SECURITY.md)。切勿提交生产凭据、`Encryption_key` 或私有调试日志。
+详见 [SECURITY.md](SECURITY.md)。切勿提交生产凭据或私有调试日志。

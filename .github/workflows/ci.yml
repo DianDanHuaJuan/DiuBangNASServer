@@ -19,9 +19,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Prepare Encryption_key for tests
-        run: cp Encryption_key.example Encryption_key
-
       - name: Install dependencies
         run: flutter pub get
 

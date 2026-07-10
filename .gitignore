@@ -45,11 +45,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Encryption key file generated locally (project root only)
-/Encryption_key
-# Legacy path — do not use; kept to prevent accidental commits
-/assets/Encryption_key
-
 **/node_modules/
 
 # Dev tooling and internal docs (not needed to build/run)

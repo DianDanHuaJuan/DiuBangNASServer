@@ -22,14 +22,6 @@ On first launch the server seeds a default owner account **`admin` / `admin`**. 
 
 Credential-based **device enrollment** (`POST /api/v1/auth/credential-device-enroll`) intentionally allows the default credentials so headless clients can register as devices on a trusted LAN. This issues a device token (`role: device`), not an owner session. Treat any deployment that still uses the default password as compromised if exposed beyond a trusted network.
 
-### Static `Encryption_key`
-
-The server loads a symmetric key from `Encryption_key` at the project root (bundled at build time). The repository ships `Encryption_key.example` as a public compatibility template; it does not commit a production secret.
-
-- Treat the example key, and any release built from it, as public compatibility data rather than a secret boundary.
-- Self-hosted deployments should generate their own independent random `Encryption_key` before building, avoid deriving it from the example, and keep client/server values in sync.
-- Anyone operating a deployment with a custom key is responsible for distributing and rotating that key safely.
-
 ### TLS (self-signed CA)
 
 The server generates a private root CA and leaf certificate on first HTTPS startup. Clients must pair and pin the CA before trusting connections. Pairing must occur on a trusted LAN; do not expose the HTTP pairing endpoint to the public Internet without additional hardening.

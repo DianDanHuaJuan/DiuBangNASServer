@@ -8,7 +8,6 @@
 - [Inno Setup 6](https://jrsoftware.org/isinfo.php)（生成 `.exe` 安装包时需要）
 - 能稳定访问 **github.com**（bootstrap 下载 media_kit / FFmpeg）
 - 建议安装 [7-Zip](https://www.7-zip.org/)（CMake 解压 `.7z` 时使用）
-- 仓库根目录已创建 `Encryption_key`（与客户端同密钥；见根目录 [README.md](../../README.md) 第 3 步）
 
 ## Windows 构建依赖（统一 bootstrap）
 
@@ -105,5 +104,5 @@ flutter build windows --release `
 - **系统**：Windows 10 或 11，64 位；**不支持 Windows 7/8**
 - **防火墙**：首次运行需允许专用/公用网络（默认 HTTPS 端口 8080）
 - **默认口令**：`admin` / `admin`，内测请尽快修改
-- **Encryption_key**：须与客户端使用同一份密钥（仓库根目录 `Encryption_key`，构建时自动打包）
+- **配对**：客户端扫描服务端 NASPAIR3 连接二维码，或使用管理员账密注册为设备
 - **托盘**：关闭窗口默认缩到托盘，非退出

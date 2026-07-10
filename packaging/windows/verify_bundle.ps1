@@ -29,8 +29,7 @@ $requiredFiles = @(
     'vcruntime140_1.dll',
     'msvcp140.dll',
     'data\app.so',
-    'data\icudtl.dat',
-    'data\flutter_assets\Encryption_key'
+    'data\icudtl.dat'
 )
 
 $requiredPlugins = @(

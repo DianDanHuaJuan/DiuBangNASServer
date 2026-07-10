@@ -10,5 +10,5 @@
 
 ## Checklist
 
-- [ ] No secrets, root `Encryption_key`, or personal debug logs committed
+- [ ] No secrets or personal debug logs committed
 - [ ] Tests added or updated for behavior changes (if applicable)
