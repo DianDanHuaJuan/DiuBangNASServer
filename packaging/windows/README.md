@@ -106,3 +106,34 @@ flutter build windows --release `
 - **默认口令**：`admin` / `admin`，内测请尽快修改
 - **配对**：客户端扫描服务端 NASPAIR3 连接二维码，或使用管理员账密注册为设备
 - **托盘**：关闭窗口默认缩到托盘，非退出
+
+## 卸载行为
+
+卸载程序（控制面板或 `unins000.exe`）按以下顺序清理：
+
+1. **终止进程**：在删除文件前强制结束 `diubang_file_s.exe` 及其子进程 `ffmpeg.exe`（`taskkill /F /T`）
+2. **AppMutex 检测**：若应用仍在运行，会提示关闭或强制终止（互斥量 `Local\DiuBangFileS.SingleInstance`）
+3. **删除已登记文件** + `[UninstallDelete]` 清理 `{app}` 目录
+4. **兜底**：`usPostUninstall` 阶段再次 `DelTree` 清除残留，并删除开机自启注册表项（`HKCU\...\Run\铥棒文件S`）
+
+**不会删除**用户共享数据目录 `%USERPROFILE%\Documents\NASServer`。
+
+### 卸载测试清单
+
+| 场景 | 预期结果 |
+|------|----------|
+| 应用未运行 | `{app}`（默认 `C:\Program Files\DiuBangWenJianS`）不存在 |
+| 主窗口打开 | 提示关闭应用，确认后目录清空 |
+| 已缩到托盘 | 自动结束进程，目录清空 |
+| 正在 HLS 转码 | `ffmpeg.exe` 被终止，目录清空 |
+| 曾开启开机自启 | `Run` 键中无 `铥棒文件S` |
+| 用户共享目录 | `Documents\NASServer` 仍存在 |
+
+验证命令：
+
+```powershell
+Test-Path "C:\Program Files\DiuBangWenJianS"   # 应为 False
+Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -ErrorAction SilentlyContinue |
+  Select-Object '铥棒文件S'                       # 应为空
+Test-Path "$env:USERPROFILE\Documents\NASServer"  # 应为 True（默认保留）
+```
