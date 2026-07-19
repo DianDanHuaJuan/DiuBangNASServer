@@ -221,6 +221,48 @@ void main() {
       expect(response.statusCode, 200);
       expect(cacheDir.listSync().whereType<File>(), isEmpty);
     });
+
+    test(
+      'percent-encodes non-ASCII success headers and keeps Unicode in body',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp(
+          'nas-put-handler',
+        );
+        addTearDown(() => tempDir.delete(recursive: true));
+
+        const fileName = '魔戒.net (1).mht';
+        final handler = PutHandler(rootPath: tempDir.path);
+        final response = await handler.handle(
+          Request(
+            'PUT',
+            Uri.parse('http://localhost/fs/${Uri.encodeComponent(fileName)}'),
+            body: Stream<List<int>>.fromIterable([utf8.encode('mht-body')]),
+          ),
+        );
+
+        final payload =
+            jsonDecode(await response.readAsString()) as Map<String, dynamic>;
+        final uploadedFile = File(
+          '${tempDir.path}${Platform.pathSeparator}$fileName',
+        );
+
+        expect(response.statusCode, 201);
+        expect(payload['file'], {
+          'rootId': 'fs',
+          'relativePath': '/$fileName',
+          'name': fileName,
+        });
+        expect(
+          response.headers['X-NAS-Resolved-Path'],
+          Uri.encodeComponent('/$fileName'),
+        );
+        expect(
+          response.headers['X-NAS-Resolved-Name'],
+          Uri.encodeComponent(fileName),
+        );
+        expect(await uploadedFile.readAsString(), 'mht-body');
+      },
+    );
   });
 }
 

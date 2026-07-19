@@ -499,12 +499,26 @@ class PutHandler {
         'overwritten': result.overwritten,
         'renamed': result.renamed,
       }),
-      headers: {
-        'Content-Type': 'application/json',
-        'X-NAS-Resolved-Path': result.relativePath,
-        'X-NAS-Resolved-Name': result.fileName,
-      },
+      headers: _buildSuccessHeaders(result),
     );
+  }
+
+  /// HTTP headers must be US-ASCII. Keep Unicode in the JSON body;
+  /// percent-encode custom headers (omit if encoded value is too large).
+  Map<String, String> _buildSuccessHeaders(_PutResult result) {
+    const maxEncodedHeaderChars = 2048;
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+    final encodedPath = Uri.encodeComponent(result.relativePath);
+    final encodedName = Uri.encodeComponent(result.fileName);
+    if (encodedPath.length <= maxEncodedHeaderChars) {
+      headers['X-NAS-Resolved-Path'] = encodedPath;
+    }
+    if (encodedName.length <= maxEncodedHeaderChars) {
+      headers['X-NAS-Resolved-Name'] = encodedName;
+    }
+    return headers;
   }
 
   Response _buildConflictResponse({

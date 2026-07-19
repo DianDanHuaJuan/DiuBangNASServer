@@ -38,9 +38,11 @@ Relay transfers store metadata and payloads under the server's data directory. C
 
 Network debug logging may include request URLs and response bodies in debug builds. Do not enable verbose logging when handling sensitive data on shared machines.
 
-### Android platform (legacy)
+### Android platform
 
-The `android/` tree is retained for historical compatibility but is **not** the primary supported platform for this open-source release. Release builds may fall back to debug signing when local keystore configuration is absent. Do not distribute unsigned or debug-signed Android builds.
+The Android server is maintained in a separate repository: [diubangNASServer_Android](https://github.com/DianDanHuaJuan/diubangNASServer_Android). The `android/` tree in this Windows-focused repo is retained for historical compatibility only.
+
+Release builds may fall back to debug signing when local keystore configuration is absent. Do not distribute unsigned or debug-signed Android builds.
 
 ### libmpv (installer bundle)
 

@@ -18,7 +18,8 @@
 ## 环境要求
 
 - Flutter SDK，兼容 **Dart ^3.10.7**（见 `pubspec.yaml`）
-- **Windows 10 / 11，x64**（本仓库当前主要支持 Windows 桌面，安卓平台待开发）
+- **Windows 10 / 11，x64**（本仓库主要支持 Windows 桌面）
+- **Android 服务端：** [diubangNASServer_Android](https://github.com/DianDanHuaJuan/diubangNASServer_Android)
 - 配套 [DiuBangNASClient](https://github.com/DianDanHuaJuan/DiuBangNASClient)
 
 ## 快速开始
