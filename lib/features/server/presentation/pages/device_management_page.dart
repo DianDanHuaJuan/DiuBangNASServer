@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/di/service_locator.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/device_registry/device_models.dart';
-import '../../../../core/device_registry/device_store.dart';
+import '../../../../core/device_registry/device_registry_admin.dart';
 import '../../../../core/runtime/runtime_presence_bridge.dart';
 
 class DeviceManagementPage extends StatefulWidget {
@@ -41,7 +41,8 @@ class _DeviceManagementPageState extends State<DeviceManagementPage>
     super.dispose();
   }
 
-  DeviceStore get _deviceStore => ServiceLocator.deviceStore;
+  DeviceRegistryAdmin get _deviceRegistryAdmin =>
+      ServiceLocator.deviceRegistryAdmin;
 
   Future<void> _reload({bool showLoadingIndicator = true}) async {
     if (showLoadingIndicator) {
@@ -140,7 +141,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage>
     }
 
     final updated = await _runMutation(() async {
-      await _deviceStore.updateDeviceStatus(
+      await _deviceRegistryAdmin.updateDeviceStatus(
         deviceId: device.deviceId,
         status: status,
       );
@@ -182,7 +183,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage>
     }
 
     final deleted = await _runMutation(() async {
-      await _deviceStore.deleteDevice(device.deviceId);
+      await _deviceRegistryAdmin.deleteDevice(device.deviceId);
       await _reload(showLoadingIndicator: false);
       return true;
     });

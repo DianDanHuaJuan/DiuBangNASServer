@@ -305,7 +305,6 @@ class _ServerManagementPageState extends State<ServerManagementPage> {
   @override
   Widget build(BuildContext context) {
     final cache = ServiceLocator.systemStatusCache;
-    final currentSettings = ServiceLocator.currentServerSettings;
 
     return BlocConsumer<ServerCubitImpl, ServerState>(
       listener: (context, state) {
@@ -328,7 +327,7 @@ class _ServerManagementPageState extends State<ServerManagementPage> {
         final serviceChild = cache == null
             ? _buildServiceContent(
                 displayIp: '服务未启动',
-                port: currentSettings.port,
+                port: ServiceLocator.serverPort,
                 isLoading: isLoading,
                 isRunning: isRunning,
                 cache: null,
@@ -337,7 +336,7 @@ class _ServerManagementPageState extends State<ServerManagementPage> {
                 animation: cache,
                 builder: (context, _) => _buildServiceContent(
                   displayIp: cache.localIp ?? '服务未启动',
-                  port: currentSettings.port,
+                  port: ServiceLocator.serverPort,
                   isLoading: isLoading,
                   isRunning: isRunning,
                   cache: cache,

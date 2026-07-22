@@ -18,6 +18,7 @@ import '../../core/auth/owner_credential_store.dart';
 import '../../core/device_registry/device_models.dart';
 import '../../core/device_registry/device_store.dart';
 import '../../core/device_registry/device_avatar_store.dart';
+import '../../core/device_registry/device_registry_admin.dart';
 import '../../core/profile/device_identity_store.dart';
 import '../../core/runtime/runtime_build_info.dart';
 import '../../core/runtime/runtime_presence_bridge.dart';
@@ -113,6 +114,7 @@ class ServiceLocator {
   static late final SharedPreferences _prefs;
   static late final OwnerCredentialStore ownerCredentialStore;
   static late final DeviceStore deviceStore;
+  static DeviceRegistryAdmin? _deviceRegistryAdmin;
   static AuthSessionStore? authSessionStore;
   static late final KeyValueStore keyValueStore;
   static late final FileSystemService fileSystemService;
@@ -182,6 +184,19 @@ class ServiceLocator {
       deviceInfoService: deviceInfoService,
       presenceRepository: realtimePresenceRepository,
       onBroadcastNameChanged: _onBroadcastNameCandidate,
+    );
+  }
+
+  static DeviceRegistryAdmin get deviceRegistryAdmin {
+    return _deviceRegistryAdmin ??= DeviceRegistryAdmin(
+      deviceStore: deviceStore,
+      ownsServerRuntime: () => realtimeStatusPublisher != null,
+      isForegroundServiceRunning: () async {
+        if (!AppPlatform.supportsForegroundService) {
+          return false;
+        }
+        return foregroundServiceDataSource.isForegroundServiceRunning();
+      },
     );
   }
 
@@ -730,16 +745,26 @@ class ServiceLocator {
         port: port,
         startedAt: _startedAt!,
       );
+      final enrolledDeviceIdsProvider = () async {
+        final devices =
+            await serverDeviceIdentityService.listEnrolledClientDevices();
+        return devices
+            .where((device) => device.status == DeviceStatus.active)
+            .map((device) => device.deviceId)
+            .toList(growable: false);
+      };
       final realtimeSnapshotBuilder = RealtimeSnapshotBuilder(
         dashboardPayloadBuilder: dashboardPayloadBuilder,
         presenceRepository: realtimePresenceRepository!,
         relayService: relayService,
+        enrolledDeviceIdsProvider: enrolledDeviceIdsProvider,
       );
       realtimeStatusPublisher = RealtimeStatusPublisher(
         connectionRegistry: realtimeConnectionRegistry!,
         eventHub: realtimeEventHub!,
         dashboardPayloadBuilder: dashboardPayloadBuilder,
         presenceRepository: realtimePresenceRepository!,
+        enrolledDeviceIdsProvider: enrolledDeviceIdsProvider,
       );
       realtimeStatusPublisher!.start();
       unawaited(
@@ -872,10 +897,19 @@ class ServiceLocator {
       final deviceApiHandler = DeviceApiHandler(
         deviceStore: deviceStore,
         avatarStore: deviceAvatarStore,
+        hostDeviceIdProvider: () async {
+          final host = await serverDeviceIdentityService.resolveHostDevice();
+          return host?.deviceId;
+        },
+        isOnlineProvider: (deviceId) =>
+            realtimePresenceRepository?.isOnline(deviceId) ?? false,
       );
       final deviceProfileApiHandler = DeviceProfileApiHandler(
         deviceStore: deviceStore,
         avatarStore: deviceAvatarStore,
+        onProfileChanged: () {
+          realtimeStatusPublisher?.publishPresenceChanged();
+        },
       );
       final authRouter = AuthRouter(
         authSessionHandler: authSessionHandler,

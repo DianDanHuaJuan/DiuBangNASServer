@@ -11,6 +11,7 @@ import 'realtime_event_hub.dart';
 import 'realtime_presence_repository.dart';
 
 typedef RealtimeStatusClock = DateTime Function();
+typedef EnrolledDeviceIdsProvider = Future<List<String>> Function();
 
 class RealtimeStatusPublisher {
   RealtimeStatusPublisher({
@@ -18,6 +19,7 @@ class RealtimeStatusPublisher {
     required RealtimeEventHub eventHub,
     required DashboardPayloadBuilder dashboardPayloadBuilder,
     required RealtimePresenceRepository presenceRepository,
+    EnrolledDeviceIdsProvider? enrolledDeviceIdsProvider,
     Duration publishInterval = const Duration(seconds: 5),
     Duration inactivityTimeout = realtimeHeartbeatTimeout,
     RealtimeStatusClock? clock,
@@ -25,6 +27,7 @@ class RealtimeStatusPublisher {
        _eventHub = eventHub,
        _dashboardPayloadBuilder = dashboardPayloadBuilder,
        _presenceRepository = presenceRepository,
+       _enrolledDeviceIdsProvider = enrolledDeviceIdsProvider,
        _publishInterval = publishInterval,
        _inactivityTimeout = inactivityTimeout,
        _clock = clock ?? DateTime.now;
@@ -33,6 +36,7 @@ class RealtimeStatusPublisher {
   final RealtimeEventHub _eventHub;
   final DashboardPayloadBuilder _dashboardPayloadBuilder;
   final RealtimePresenceRepository _presenceRepository;
+  final EnrolledDeviceIdsProvider? _enrolledDeviceIdsProvider;
   final Duration _publishInterval;
   final Duration _inactivityTimeout;
   final RealtimeStatusClock _clock;
@@ -72,14 +76,38 @@ class RealtimeStatusPublisher {
   }
 
   void publishPresenceChanged() {
+    unawaited(_publishPresenceChangedAsync());
+  }
+
+  Future<void> _publishPresenceChangedAsync() async {
     if (!_connectionRegistry.hasConnections) {
       return;
     }
 
+    final payload = <String, dynamic>{
+      'clients': _presenceRepository.presenceSnapshot(),
+    };
+    final enrolledIds = await _loadEnrolledDeviceIds();
+    if (enrolledIds != null) {
+      payload['enrolledDeviceIds'] = enrolledIds;
+    }
+
     _eventHub.broadcast(
       type: RealtimeMessageType.presenceChanged,
-      payload: {'clients': _presenceRepository.presenceSnapshot()},
+      payload: payload,
     );
+  }
+
+  Future<List<String>?> _loadEnrolledDeviceIds() async {
+    final provider = _enrolledDeviceIdsProvider;
+    if (provider == null) {
+      return null;
+    }
+    try {
+      return await provider();
+    } catch (_) {
+      return null;
+    }
   }
 
   void dispose() {

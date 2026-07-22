@@ -16,11 +16,14 @@ class DeviceProfileApiHandler {
   DeviceProfileApiHandler({
     required DeviceStore deviceStore,
     required DeviceAvatarStore avatarStore,
+    void Function()? onProfileChanged,
   }) : _deviceStore = deviceStore,
-       _avatarStore = avatarStore;
+       _avatarStore = avatarStore,
+       _onProfileChanged = onProfileChanged;
 
   final DeviceStore _deviceStore;
   final DeviceAvatarStore _avatarStore;
+  final void Function()? _onProfileChanged;
 
   Handler get handler {
     final router = Router();
@@ -119,6 +122,7 @@ class DeviceProfileApiHandler {
         deviceId: authContext.deviceId!,
         bytes: bytes,
       );
+      _onProfileChanged?.call();
       return Response.ok(
         jsonEncode({
           'deviceId': authContext.deviceId,
@@ -139,6 +143,7 @@ class DeviceProfileApiHandler {
     final authContext = _requireDeviceContext(request)!;
 
     await _avatarStore.deleteAvatar(authContext.deviceId!);
+    _onProfileChanged?.call();
     return Response(204, headers: _jsonHeaders());
   }
 

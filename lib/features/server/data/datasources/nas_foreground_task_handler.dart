@@ -2,9 +2,14 @@
 // 文件职责：定义 NAS 服务前台任务的后台入口和最小 TaskHandler
 // 文件对外接口：NasForegroundTaskHandler
 // 文件包含：NasForegroundTaskHandler
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import '../../../../app/di/service_locator.dart';
+import '../../../../core/device_registry/device_models.dart';
+import '../../../../core/device_registry/device_registry_admin.dart';
 import 'nas_foreground_task_contract.dart';
 
 /// 输入：无
@@ -29,6 +34,7 @@ class NasForegroundTaskHandler extends TaskHandler {
     await _clearRuntimeError();
 
     try {
+      WidgetsFlutterBinding.ensureInitialized();
       await ServiceLocator.setup(initializeForegroundService: false);
       _isServiceLocatorReady = true;
 
@@ -77,6 +83,86 @@ class NasForegroundTaskHandler extends TaskHandler {
 
   @override
   void onRepeatEvent(DateTime timestamp) {}
+
+  @override
+  void onReceiveData(Object data) {
+    unawaited(_handleReceiveData(data));
+  }
+
+  Future<void> _handleReceiveData(Object data) async {
+    final map = _asStringKeyedMap(data);
+    if (map == null) {
+      return;
+    }
+    if (map['event'] != DeviceRegistryCommand.event) {
+      return;
+    }
+
+    final requestId = '${map['requestId'] ?? ''}';
+    try {
+      if (!_isServiceLocatorReady) {
+        throw StateError('Foreground service runtime is not ready');
+      }
+      await _applyDeviceRegistryCommand(map);
+      FlutterForegroundTask.sendDataToMain(<String, dynamic>{
+        'event': DeviceRegistryCommand.resultEvent,
+        'requestId': requestId,
+        'ok': true,
+      });
+    } catch (error) {
+      FlutterForegroundTask.sendDataToMain(<String, dynamic>{
+        'event': DeviceRegistryCommand.resultEvent,
+        'requestId': requestId,
+        'ok': false,
+        'error': error.toString(),
+      });
+    }
+  }
+
+  Future<void> _applyDeviceRegistryCommand(Map<String, dynamic> map) async {
+    final action = '${map['action'] ?? ''}'.trim();
+    final deviceId = '${map['deviceId'] ?? ''}'.trim();
+    if (deviceId.isEmpty) {
+      throw ArgumentError('deviceId is required');
+    }
+
+    switch (action) {
+      case DeviceRegistryCommand.actionDelete:
+        await ServiceLocator.deviceStore.deleteDevice(deviceId);
+        return;
+      case DeviceRegistryCommand.actionSetStatus:
+        final status = _parseStatus('${map['status'] ?? ''}');
+        if (status == null) {
+          throw ArgumentError('status must be active, disabled, or revoked');
+        }
+        await ServiceLocator.deviceStore.updateDeviceStatus(
+          deviceId: deviceId,
+          status: status,
+        );
+        return;
+      default:
+        throw ArgumentError('Unsupported device registry action: $action');
+    }
+  }
+
+  DeviceStatus? _parseStatus(String rawValue) {
+    return switch (rawValue.trim().toLowerCase()) {
+      'active' => DeviceStatus.active,
+      'disabled' => DeviceStatus.disabled,
+      'revoked' => DeviceStatus.revoked,
+      _ => null,
+    };
+  }
+
+  Map<String, dynamic>? _asStringKeyedMap(Object data) {
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    if (data is Map) {
+      return data.map((key, value) => MapEntry('$key', value));
+    }
+    return null;
+  }
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {

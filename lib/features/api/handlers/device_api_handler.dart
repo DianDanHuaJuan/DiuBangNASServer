@@ -14,17 +14,24 @@ class DeviceApiHandler {
   DeviceApiHandler({
     required DeviceStore deviceStore,
     required DeviceAvatarStore avatarStore,
+    Future<String?> Function()? hostDeviceIdProvider,
+    bool Function(String deviceId)? isOnlineProvider,
   }) : _deviceStore = deviceStore,
-       _avatarStore = avatarStore;
+       _avatarStore = avatarStore,
+       _hostDeviceIdProvider = hostDeviceIdProvider,
+       _isOnlineProvider = isOnlineProvider;
 
   final DeviceStore _deviceStore;
   final DeviceAvatarStore _avatarStore;
+  final Future<String?> Function()? _hostDeviceIdProvider;
+  final bool Function(String deviceId)? _isOnlineProvider;
 
   Handler get handler {
     final router = Router();
 
     router.get('/', listDevices);
     router.get('/profiles', listProfiles);
+    router.get('/roster', listRoster);
     router.get('/<deviceId>/avatar', getDeviceAvatar);
     router.get('/<deviceId>', getDevice);
     router.patch('/<deviceId>', updateDevice);
@@ -87,6 +94,42 @@ class DeviceApiHandler {
 
     return Response.ok(
       jsonEncode({'profiles': profiles}),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
+
+  /// Full enrolled client roster for device navigation (excludes host).
+  Future<Response> listRoster(Request request) async {
+    final authError = ensureRequestHasAnyRole(
+      request,
+      allowedRoles: {AccountRole.owner, AccountRole.device},
+      message: 'Authentication required to read device roster',
+    );
+    if (authError != null) {
+      return authError;
+    }
+
+    final hostDeviceId = (await _hostDeviceIdProvider?.call())?.trim();
+    final devices = await _deviceStore.listDevices();
+    final entries = <Map<String, dynamic>>[];
+    for (final summary in devices) {
+      if (summary.status != DeviceStatus.active) {
+        continue;
+      }
+      if (hostDeviceId != null &&
+          hostDeviceId.isNotEmpty &&
+          summary.deviceId == hostDeviceId) {
+        continue;
+      }
+      final device = await _deviceStore.findDeviceById(summary.deviceId);
+      if (device == null || device.status != DeviceStatus.active) {
+        continue;
+      }
+      entries.add(await _rosterEntryJson(device));
+    }
+
+    return Response.ok(
+      jsonEncode({'devices': entries}),
       headers: {'Content-Type': 'application/json'},
     );
   }
@@ -299,6 +342,55 @@ class DeviceApiHandler {
       if (avatarUpdatedAt != null)
         'avatarUpdatedAt': avatarUpdatedAt.toUtc().toIso8601String(),
     };
+  }
+
+  Future<Map<String, dynamic>> _rosterEntryJson(StoredDeviceRecord device) async {
+    final avatarUpdatedAt = await _avatarStore.readUpdatedAt(device.deviceId);
+    final online = _isOnlineProvider?.call(device.deviceId) ?? false;
+    return {
+      'deviceId': device.deviceId,
+      'deviceName': device.deviceName,
+      'label': device.label,
+      'platform': device.platform,
+      'brand': device.brand,
+      'model': device.model,
+      'displayName': _bestDisplayName(
+        label: device.label,
+        brand: device.brand,
+        model: device.model,
+        deviceName: device.deviceName,
+        fallback: device.deviceId,
+      ),
+      'online': online,
+      'lastSeenAt': device.lastSeenAt?.toUtc().toIso8601String(),
+      if (avatarUpdatedAt != null)
+        'avatarUpdatedAt': avatarUpdatedAt.toUtc().toIso8601String(),
+    };
+  }
+
+  String _bestDisplayName({
+    String? label,
+    String? brand,
+    String? model,
+    String? deviceName,
+    required String fallback,
+  }) {
+    final trimmedLabel = label?.trim();
+    if (trimmedLabel != null && trimmedLabel.isNotEmpty) {
+      return trimmedLabel;
+    }
+    final parts = <String>[
+      if (brand != null && brand.trim().isNotEmpty) brand.trim(),
+      if (model != null && model.trim().isNotEmpty) model.trim(),
+    ];
+    if (parts.isNotEmpty) {
+      return parts.join(' ');
+    }
+    final trimmedDeviceName = deviceName?.trim();
+    if (trimmedDeviceName != null && trimmedDeviceName.isNotEmpty) {
+      return trimmedDeviceName;
+    }
+    return fallback.trim();
   }
 
   Response _error(int statusCode, String code, String message) {

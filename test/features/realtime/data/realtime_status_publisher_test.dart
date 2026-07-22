@@ -96,6 +96,7 @@ void main() {
         );
 
         publisher.publishStatusTick();
+        await Future<void>.delayed(Duration.zero);
 
         expect(registry.findByConnectionId('conn-active'), isNotNull);
         expect(registry.findByConnectionId('conn-stale'), isNull);
@@ -115,6 +116,51 @@ void main() {
         expect(clients.single['deviceId'], 'tablet-01');
       },
     );
+
+    test('includes enrolledDeviceIds in presence.changed payload', () async {
+      final now = DateTime.utc(2026, 4, 14, 12);
+      final registry = RealtimeConnectionRegistry();
+      final presenceRepository = RealtimePresenceRepository();
+      final channel = _FakeWebSocketChannel();
+      final connection = _buildConnection(
+        channel: channel,
+        connectionId: 'conn-1',
+        clientId: 'tablet-01',
+        connectedAt: now.subtract(const Duration(minutes: 1)),
+        lastSeenAt: now.subtract(const Duration(seconds: 5)),
+      );
+      registry.register(connection);
+      presenceRepository.markOnline(connection);
+
+      final publisher = RealtimeStatusPublisher(
+        connectionRegistry: registry,
+        eventHub: RealtimeEventHub(
+          connectionRegistry: registry,
+          clock: () => now,
+        ),
+        dashboardPayloadBuilder: await _buildDashboardPayloadBuilder(now),
+        presenceRepository: presenceRepository,
+        enrolledDeviceIdsProvider: () async =>
+            const <String>['tablet-01', 'phone-01'],
+        clock: () => now,
+      );
+
+      publisher.publishPresenceChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      final presenceMessages = channel.messages
+          .map((message) => jsonDecode(message) as Map<String, dynamic>)
+          .where(
+            (message) =>
+                message['type'] == RealtimeMessageType.presenceChanged,
+          )
+          .toList(growable: false);
+      expect(presenceMessages, hasLength(1));
+      expect(
+        presenceMessages.single['payload']['enrolledDeviceIds'],
+        <String>['tablet-01', 'phone-01'],
+      );
+    });
   });
 }
 
